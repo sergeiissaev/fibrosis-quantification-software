@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+
+  fibrosis_quantification_software:
+    image: fibrosis_quantification_software
+    build: .
+    network_mode: "host"
+    env_file: .env
+    deploy:
+      restart_policy:
+        condition: on-failure

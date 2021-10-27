@@ -1,0 +1,18 @@
+image: docker:19.03.12
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+
+services:
+  - docker:19.03.12-dind
+
+before_script:
+  - docker info
+
+build:
+  stage: build
+  tags:
+    - "lambda"
+  script:
+    - docker build . -t fibrosis_quantification_software
+    - docker run --rm fibrosis_quantification_software pytest
