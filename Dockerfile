@@ -4,6 +4,8 @@ USER root
 RUN mkdir /opt/fibrosis_quantification_software
 RUN chmod -R 777 /opt/fibrosis_quantification_software
 WORKDIR /opt/fibrosis_quantification_software
+EXPOSE 8501
+EXPOSE 80
 USER micromamba
 
 COPY environment.yml environment.yml
@@ -15,4 +17,6 @@ COPY tests tests
 COPY fibrosis_quantification_software fibrosis_quantification_software
 RUN pip install -e .
 
-CMD python fibrosis_quantification_software/app/main.py
+
+
+CMD streamlit run fibrosis_quantification_software/app/main.py
