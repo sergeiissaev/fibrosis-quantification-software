@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import fibrosis_quantification
+import fibrosis_quantification.fibrosis_quantification as fibrosis_quantification
 import streamlit as st
 from prefect import Flow
 
@@ -15,7 +15,8 @@ if uploaded_file is not None:
     clicked = st.button("Calculate")
     if clicked:
         with Flow("fibrosis-quant-flow") as flow:
-            text = fibrosis_quantification.hello_world()
+            text = fibrosis_quantification.callback(uploaded_file)
         state_1 = flow.run()
         task_ref = flow.get_tasks()[0]
-        st.write(state_1.result[task_ref].result)
+        task_1_result = state_1.result[task_ref].result
+        st.image(state_1.result[task_ref].result)
