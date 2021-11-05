@@ -1,4 +1,4 @@
-name: fibrosis_quantification_software
+name: fibrosis_quantification_software_code
 channels:
   - conda-forge
   - defaults

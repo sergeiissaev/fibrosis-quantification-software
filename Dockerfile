@@ -14,7 +14,7 @@ RUN micromamba install -y -n base -f environment.yml && \
 
 COPY setup.py setup.py
 COPY tests tests
-COPY fibrosis_quantification_software fibrosis_quantification_software
+COPY fibrosis_quantification_software_code fibrosis_quantification_software
 RUN pip install -e .
 
 
