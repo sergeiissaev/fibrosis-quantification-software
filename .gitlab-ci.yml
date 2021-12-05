@@ -14,5 +14,5 @@ build:
   tags:
     - "lambda"
   script:
-    - docker build . -t fibrosis_quantification_software
-    - docker run --rm fibrosis_quantification_software pytest
+    - docker build . -t fibrosis_quantification_software_code
+    - docker run --rm fibrosis_quantification_software_code pytest
