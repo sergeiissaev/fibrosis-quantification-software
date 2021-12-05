@@ -13,3 +13,10 @@ dependencies:
     - pytest-cov
     - black
     - streamlit
+    - opencv-python-headless
+    - scikit-image
+    - keras
+    - tensorflow
+    - art
+    - tqdm
+    - matplotlib

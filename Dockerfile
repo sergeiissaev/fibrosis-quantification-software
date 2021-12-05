@@ -14,9 +14,10 @@ RUN micromamba install -y -n base -f environment.yml && \
 
 COPY setup.py setup.py
 COPY tests tests
-COPY fibrosis_quantification_software_code fibrosis_quantification_software
+COPY models models
+COPY fibrosis_quantification_software_code fibrosis_quantification_software_code
 RUN pip install -e .
 
 
 
-CMD streamlit run fibrosis_quantification_software/app/main.py
+CMD streamlit run fibrosis_quantification_software_code/app/main.py
