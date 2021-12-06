@@ -19,4 +19,3 @@ dependencies:
     - tensorflow
     - art
     - tqdm
-    - matplotlib

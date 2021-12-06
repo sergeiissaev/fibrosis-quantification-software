@@ -101,8 +101,7 @@ def import_model():
     return model
 
 
-def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.UploadedFile, model):
-
+def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.UploadedFile):
     image = Image.open(source_file)
     img_array = np.array(image)
     (h1, w1, d1) = img_array.shape
@@ -112,12 +111,16 @@ def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.Uploa
     img_array = resize(img_array, dim, interpolation=INTER_AREA)
     img_array = set_global_mean(img_array, 120)
     img_array = constrain_type(img_array)
+    assert type(img_array) == np.ndarray
     img_preprocess_blocks_255 = view_as_blocks(img_array, block_shape=(256, 256, 3)).squeeze()
     img_preprocess_blocks_255 = img_preprocess_blocks_255.reshape(-1, 256, 256, 3)
     # scale from [0,255] to [-1,1]
     im1_preprocess_blocks = (img_preprocess_blocks_255 - 127.5) / 127.5
     num_samples = im1_preprocess_blocks.shape[0]
+    return num_samples, im1_preprocess_blocks, img_preprocess_blocks_255
 
+
+def apply_gan(num_samples: int, model, im1_preprocess_blocks, img_preprocess_blocks_255):
     grid2d = []
     thresher = np.zeros((num_samples, 256, 256))
     genner = np.zeros((num_samples, 256, 256, 3))
@@ -144,5 +147,4 @@ def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.Uploa
         thresher[sample] = thresh_tissue
         threshgenner[sample] = threshgen
 
-    assert type(img_array) == np.ndarray
-    return source_file, img_array
+    return None
