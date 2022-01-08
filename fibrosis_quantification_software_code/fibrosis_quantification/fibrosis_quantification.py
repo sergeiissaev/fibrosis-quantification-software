@@ -12,19 +12,21 @@ def import_model():
     return model
 
 
-@task(name="preliminary preprocessing", max_retries=3, retry_delay=timedelta(seconds=10), nout=3)
-def preliminary_preprocessing(source_file):
+@task(name="preliminary preprocessing", max_retries=3, retry_delay=timedelta(seconds=10), nout=5)
+def preliminary_preprocessing(source_file, radio):
     (
         num_samples,
         im1_preprocess_blocks,
         img_preprocess_blocks_255,
-    ) = fibrosis_quantification_no_decorator.preliminary_preprocessing(source_file)
-    return num_samples, im1_preprocess_blocks, img_preprocess_blocks_255
+        width,
+        height,
+    ) = fibrosis_quantification_no_decorator.preliminary_preprocessing(source_file, radio)
+    return num_samples, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
 
 
 @task(name="Applying GAN", max_retries=3, retry_delay=timedelta(seconds=10), nout=1)
-def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255):
+def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height):
     _ = fibrosis_quantification_no_decorator.apply_gan(
-        num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255
+        num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
     )
     return None

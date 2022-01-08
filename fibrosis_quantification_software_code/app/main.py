@@ -26,9 +26,11 @@ def main():
                     num_samples,
                     im1_preprocess_blocks,
                     img_preprocess_blocks_255,
-                ) = fibrosis_quantification.preliminary_preprocessing(uploaded_file)
+                    width,
+                    height,
+                ) = fibrosis_quantification.preliminary_preprocessing(uploaded_file, radio)
                 _ = fibrosis_quantification.apply_gan(
-                    num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255
+                    num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
                 )
             state_1 = flow.run()
             # print(f"state 1 is {state_1}")
