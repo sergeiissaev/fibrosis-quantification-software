@@ -14,12 +14,15 @@ def main():
     st.header("Created by Sergei Issaev, with the supervision of Dr. Roger Tam and Dr. Fabio Rossi")
 
     uploaded_file = st.file_uploader("Upload your histology image (PSR stained, 10x microscopy)", type=["png", "jpg"])
+
     if uploaded_file is not None:
         file_details = {"FileName": uploaded_file.name, "FileType": uploaded_file.type, "FileSize": uploaded_file.size}
         radio = st.radio("Patch or whole slide image?", ["WSI", "Patch"])
         print(file_details, radio)
         clicked = st.button("Calculate")
         if clicked:
+            st.header("Original Image")
+            st.image(uploaded_file)
             with Flow("fibrosis-quant-flow") as flow:
                 model = fibrosis_quantification.import_model()
                 (
@@ -28,9 +31,17 @@ def main():
                     img_preprocess_blocks_255,
                     width,
                     height,
+                    patchwise_thresholded_tissue_nontissue,
                 ) = fibrosis_quantification.preliminary_preprocessing(uploaded_file, radio)
-                _ = fibrosis_quantification.apply_gan(
-                    num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
+                tissue_final, fibrosis_final = fibrosis_quantification.apply_gan(
+                    num_samples,
+                    model,
+                    im1_preprocess_blocks,
+                    img_preprocess_blocks_255,
+                    width,
+                    height,
+                    radio,
+                    patchwise_thresholded_tissue_nontissue,
                 )
             state_1 = flow.run()
             # print(f"state 1 is {state_1}")
@@ -38,8 +49,6 @@ def main():
             #     if task.name == "preliminary preprocessing":
             #         processing_task = task
             # task_1_source_image, task_1_result_image = state_1.result[processing_task].result
-            st.header("Original Image")
-            st.image(uploaded_file)
 
             if state_1.message == "All reference tasks succeeded.":
                 tprint("Success")
