@@ -11,7 +11,7 @@ from PIL import Image
 from skimage.util.shape import view_as_blocks
 from tqdm import tqdm
 
-from fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quantification_no_decorator.helper_functions import (
+from fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quantification_no_decorator_folder.helper_functions import (
     constrain_type,
     patchwise_threshold,
     set_global_mean,
@@ -55,18 +55,34 @@ def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.Uploa
     img_array = set_global_mean(img_array, 120)
     img_array = constrain_type(img_array)
     assert type(img_array) == np.ndarray
+    patchwise_thresholded_tissue_nontissue = patchwise_threshold(img_array)
     if radio == "WSI":
-        patchwise_thresholded = patchwise_threshold(img_array)
-        st.image(patchwise_thresholded)
+        st.image(patchwise_thresholded_tissue_nontissue)
     img_preprocess_blocks_255 = view_as_blocks(img_array, block_shape=(256, 256, 3)).squeeze()
     img_preprocess_blocks_255 = img_preprocess_blocks_255.reshape(-1, 256, 256, 3)
     # scale from [0,255] to [-1,1]
     im1_preprocess_blocks = (img_preprocess_blocks_255 - 127.5) / 127.5
     num_samples = im1_preprocess_blocks.shape[0]
-    return num_samples, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
+    return (
+        num_samples,
+        im1_preprocess_blocks,
+        img_preprocess_blocks_255,
+        width,
+        height,
+        patchwise_thresholded_tissue_nontissue,
+    )
 
 
-def apply_gan(num_samples: int, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height):
+def apply_gan(
+    num_samples: int,
+    model,
+    im1_preprocess_blocks,
+    img_preprocess_blocks_255,
+    width,
+    height,
+    radio,
+    patchwise_thresholded_tissue_nontissue,
+):
     grid2d = []
     thresher = np.zeros((num_samples, 256, 256))
     genner = np.zeros((num_samples, 256, 256, 3))
@@ -86,8 +102,8 @@ def apply_gan(num_samples: int, model, im1_preprocess_blocks, img_preprocess_blo
         gen_image = (gen_image + abs(gen_image.min())) / 2.0
         assert len(gen_image.shape) == 4
         assert type(gen_image) == np.ndarray
-        white, _, thresh_tissue = threshold_fx(patch_255)
-        if white != 0:
+        non_fibrotic_white, _, thresh_tissue = threshold_fx(patch_255)
+        if non_fibrotic_white != 0:
             gen_calc, threshgen = threshold_gen(gen_image)
             grid2d.append("x")
         else:
@@ -185,8 +201,31 @@ def apply_gan(num_samples: int, model, im1_preprocess_blocks, img_preprocess_blo
     for i in remove:
         threshgenner[i] = np.full((thresh_tissue.shape), 255)
 
-    clean_thresholded = zip_up_image(height, width, threshgenner)
-    clean_thresholded = clean_thresholded.astype(np.uint8)
-    st.image(clean_thresholded)
+    clean_thresholded_fibrosis_nonfibrosis = zip_up_image(height, width, threshgenner)
+    clean_thresholded_fibrosis_nonfibrosis = clean_thresholded_fibrosis_nonfibrosis.astype(np.uint8)
+    st.image(clean_thresholded_fibrosis_nonfibrosis)
 
-    return None
+    final_thresholded_flat = clean_thresholded_fibrosis_nonfibrosis.flatten().tolist()
+    fibrotic_pixels = final_thresholded_flat.count(0)
+    non_fibrotic_white = final_thresholded_flat.count(255)
+    total_pixels = len(final_thresholded_flat)
+    assert fibrotic_pixels + non_fibrotic_white == total_pixels, "Major problem with math!"
+
+    final_tissue_nontissue_flat = patchwise_thresholded_tissue_nontissue.flatten().tolist()
+    total_pixels_tissue_nontissue = len(final_tissue_nontissue_flat)
+    if radio == "WSI":
+        print("Calculating for WSI")
+        nontissue_black = final_tissue_nontissue_flat.count(0)
+        tissue_white = final_tissue_nontissue_flat.count(255)
+        assert nontissue_black + tissue_white == total_pixels_tissue_nontissue, "Major problem with math!"
+        assert total_pixels_tissue_nontissue == total_pixels, "Pixel counts don't add up!"
+    else:
+        tissue_white = total_pixels_tissue_nontissue
+        print("Calculating for patch")
+
+    tissue_final = round(100 * tissue_white / total_pixels_tissue_nontissue, 2)
+    fibrosis_final = round(100 * fibrotic_pixels / tissue_white, 2)
+    st.write(
+        f"The percentage of tissue in this image is {tissue_final}% and the percentage of fibrosis in this image is {fibrosis_final}%."
+    )
+    return tissue_final, fibrosis_final

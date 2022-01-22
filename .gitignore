@@ -123,4 +123,4 @@ metrics_trt/
 /data
 
 .idea
-/fibrosis_quantification_software_code/fibrosis_quantification/fibrosis_quantification_no_decorator/original.py
+/fibrosis_quantification_software_code/fibrosis_quantification/fibrosis_quantification_no_decorator_folder/original.py
