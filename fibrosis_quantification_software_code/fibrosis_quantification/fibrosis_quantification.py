@@ -32,25 +32,30 @@ def preliminary_preprocessing(source_file, radio):
     )
 
 
-@task(name="Applying GAN", max_retries=3, retry_delay=timedelta(seconds=10), nout=2)
-def apply_gan(
-    num_samples,
-    model,
-    im1_preprocess_blocks,
-    img_preprocess_blocks_255,
-    width,
-    height,
-    radio,
-    patchwise_thresholded_tissue_nontissue,
-):
-    tissue_final, fibrosis_final = fibrosis_quantification_no_decorator.apply_gan(
+@task(name="Applying GAN", max_retries=3, retry_delay=timedelta(seconds=10), nout=3)
+def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height):
+    grid2d, threshgenner, thresh_tissue = fibrosis_quantification_no_decorator.apply_gan(
         num_samples,
         model,
         im1_preprocess_blocks,
         img_preprocess_blocks_255,
         width,
         height,
-        radio,
-        patchwise_thresholded_tissue_nontissue,
+    )
+    return grid2d, threshgenner, thresh_tissue
+
+
+@task(name="Cleaning generated images", max_retries=3, retry_delay=timedelta(seconds=10), nout=1)
+def clean_images(width: int, height: int, grid2d: list, threshgenner, thresh_tissue):
+    clean_thresholded_fibrosis_nonfibrosis = fibrosis_quantification_no_decorator.clean_images(
+        width, height, grid2d, threshgenner, thresh_tissue
+    )
+    return clean_thresholded_fibrosis_nonfibrosis
+
+
+@task(name="Reporting fibrosis", max_retries=3, retry_delay=timedelta(seconds=10), nout=2)
+def report_fibrosis(patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis):
+    tissue_final, fibrosis_final = fibrosis_quantification_no_decorator.report_fibrosis(
+        patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis
     )
     return tissue_final, fibrosis_final

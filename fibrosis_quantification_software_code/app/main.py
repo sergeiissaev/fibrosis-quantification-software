@@ -33,15 +33,14 @@ def main():
                     height,
                     patchwise_thresholded_tissue_nontissue,
                 ) = fibrosis_quantification.preliminary_preprocessing(uploaded_file, radio)
-                tissue_final, fibrosis_final = fibrosis_quantification.apply_gan(
-                    num_samples,
-                    model,
-                    im1_preprocess_blocks,
-                    img_preprocess_blocks_255,
-                    width,
-                    height,
-                    radio,
-                    patchwise_thresholded_tissue_nontissue,
+                grid2d, threshgenner, thresh_tissue = fibrosis_quantification.apply_gan(
+                    num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
+                )
+                clean_thresholded_fibrosis_nonfibrosis = fibrosis_quantification.clean_images(
+                    width, height, grid2d, threshgenner, thresh_tissue
+                )
+                tissue_final, fibrosis_final = fibrosis_quantification.report_fibrosis(
+                    patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis
                 )
             state_1 = flow.run()
             # print(f"state 1 is {state_1}")
