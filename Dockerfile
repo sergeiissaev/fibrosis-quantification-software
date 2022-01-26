@@ -15,5 +15,5 @@ COPY tests tests
 COPY models models
 COPY fibrosis_quantification_software_code fibrosis_quantification_software_code
 RUN pip install -e .
-CMD streamlit run fibrosis_quantification_software_code/app/main.py --server.port $PORT
-#CMD streamlit run fibrosis_quantification_software_code/app/main.py
+#CMD streamlit run fibrosis_quantification_software_code/app/main.py --server.port $PORT
+CMD streamlit run fibrosis_quantification_software_code/app/main.py

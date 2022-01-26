@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import typing
 
+import keras
 import numpy as np
 import streamlit
 import streamlit as st
@@ -75,14 +77,19 @@ def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.Uploa
 
 def apply_gan(
     num_samples: int,
-    model,
-    im1_preprocess_blocks,
-    img_preprocess_blocks_255,
-    width,
-    height,
-    radio,
-    patchwise_thresholded_tissue_nontissue,
-):
+    model: keras.engine.functional.Functional,
+    im1_preprocess_blocks: np.ndarray,
+    img_preprocess_blocks_255: np.ndarray,
+    width: int,
+    height: int,
+) -> typing.Tuple[list, np.ndarray, np.ndarray]:
+    """Call the model to translate the input"""
+    assert type(num_samples) == int
+    assert type(model) == keras.engine.functional.Functional
+    assert type(im1_preprocess_blocks) == np.ndarray
+    assert type(img_preprocess_blocks_255) == np.ndarray
+    assert type(width) == int
+    assert type(height) == int
     grid2d = []
     thresher = np.zeros((num_samples, 256, 256))
     genner = np.zeros((num_samples, 256, 256, 3))
@@ -126,6 +133,21 @@ def apply_gan(
     st.image(legacy_threshold)
     st.image(generated_thresholded)
     st.image(generated_image)
+    assert type(grid2d) == list
+    assert type(threshgenner) == np.ndarray
+    assert type(thresh_tissue) == np.ndarray
+    return grid2d, threshgenner, thresh_tissue
+
+
+def clean_images(
+    width: int, height: int, grid2d: list, threshgenner: np.ndarray, thresh_tissue: np.ndarray
+) -> np.ndarray:
+    """Clean the thresholded images"""
+    assert type(width) == int
+    assert type(height) == int
+    assert type(grid2d) == list
+    assert type(threshgenner) == np.ndarray
+    assert type(thresh_tissue) == np.ndarray
 
     supergrid = list()
     k = 0
@@ -204,7 +226,15 @@ def apply_gan(
     clean_thresholded_fibrosis_nonfibrosis = zip_up_image(height, width, threshgenner)
     clean_thresholded_fibrosis_nonfibrosis = clean_thresholded_fibrosis_nonfibrosis.astype(np.uint8)
     st.image(clean_thresholded_fibrosis_nonfibrosis)
+    assert type(clean_thresholded_fibrosis_nonfibrosis) == np.ndarray
+    return clean_thresholded_fibrosis_nonfibrosis
 
+
+def report_fibrosis(patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis):
+    """Report the amount of fibrosis"""
+    assert type(patchwise_thresholded_tissue_nontissue) == np.ndarray
+    assert type(radio) == str
+    assert type(clean_thresholded_fibrosis_nonfibrosis) == np.ndarray
     final_thresholded_flat = clean_thresholded_fibrosis_nonfibrosis.flatten().tolist()
     fibrotic_pixels = final_thresholded_flat.count(0)
     non_fibrotic_white = final_thresholded_flat.count(255)
@@ -228,4 +258,6 @@ def apply_gan(
     st.write(
         f"The percentage of tissue in this image is {tissue_final}% and the percentage of fibrosis in this image is {fibrosis_final}%."
     )
+    assert type(tissue_final) == float
+    assert type(fibrosis_final) == float
     return tissue_final, fibrosis_final
