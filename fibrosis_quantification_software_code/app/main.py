@@ -11,7 +11,7 @@ import fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_qu
 
 def main():
     st.title("Fibrosis Quantification Software")
-    st.header("Created by Sergei Issaev, with the supervision of Dr. Roger Tam and Dr. Fabio Rossi.")
+    st.header("Created by Sergei Issaev, with the supervision of Dr. Roger Tam and Dr. Fabio Rossi")
 
     uploaded_file = st.file_uploader("Upload your histology image (PSR stained, 10x microscopy)", type=["png", "jpg"])
 
