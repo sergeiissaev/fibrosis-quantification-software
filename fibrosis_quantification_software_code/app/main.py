@@ -6,6 +6,7 @@ import streamlit as st
 from art import tprint
 from prefect import Flow
 
+import fibrosis_quantification_software_code.fibrosis_quantification.blob_removal as blob_removal
 import fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quantification as fibrosis_quantification
 
 
@@ -36,12 +37,16 @@ def main():
                 grid2d, threshgenner, thresh_tissue = fibrosis_quantification.apply_gan(
                     num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
                 )
-                clean_thresholded_fibrosis_nonfibrosis = fibrosis_quantification.clean_images(
+                clean_thresholded_fibrosis_nonfibrosis, remove = fibrosis_quantification.clean_images(
                     width, height, grid2d, threshgenner, thresh_tissue
+                )
+                patchwise_thresholded_tissue_nontissue = blob_removal.blob_removal(
+                    radio, patchwise_thresholded_tissue_nontissue, remove, num_samples, height, width
                 )
                 tissue_final, fibrosis_final = fibrosis_quantification.report_fibrosis(
                     patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis
                 )
+
             state_1 = flow.run()
             # print(f"state 1 is {state_1}")
             # for task in flow.get_tasks():

@@ -45,12 +45,12 @@ def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_2
     return grid2d, threshgenner, thresh_tissue
 
 
-@task(name="Cleaning generated images", max_retries=3, retry_delay=timedelta(seconds=10), nout=1)
+@task(name="Cleaning generated images", max_retries=3, retry_delay=timedelta(seconds=10), nout=2)
 def clean_images(width: int, height: int, grid2d: list, threshgenner, thresh_tissue):
-    clean_thresholded_fibrosis_nonfibrosis = fibrosis_quantification_no_decorator.clean_images(
+    clean_thresholded_fibrosis_nonfibrosis, remove = fibrosis_quantification_no_decorator.clean_images(
         width, height, grid2d, threshgenner, thresh_tissue
     )
-    return clean_thresholded_fibrosis_nonfibrosis
+    return clean_thresholded_fibrosis_nonfibrosis, remove
 
 
 @task(name="Reporting fibrosis", max_retries=3, retry_delay=timedelta(seconds=10), nout=2)

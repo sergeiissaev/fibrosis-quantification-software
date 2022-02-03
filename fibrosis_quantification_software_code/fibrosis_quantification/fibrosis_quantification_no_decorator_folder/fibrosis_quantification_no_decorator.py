@@ -6,7 +6,7 @@ import keras
 import numpy as np
 import streamlit
 import streamlit as st
-from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR, INTER_AREA, cvtColor, hconcat, resize, vconcat
+from cv2 import COLOR_BGR2RGB, COLOR_RGB2BGR, INTER_AREA, cvtColor, resize
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
 from PIL import Image
@@ -19,23 +19,8 @@ from fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quan
     set_global_mean,
     threshold_fx,
     threshold_gen,
+    zip_up_image,
 )
-
-
-def zip_up_image(height, width, array_of_patches):
-    multiple = 0
-    for a in tqdm(range(height)):
-        for k in range(width):
-            if k == 0:
-                im_h = array_of_patches[k + (width * multiple)]
-            else:
-                im_h = hconcat([im_h, array_of_patches[k + (width * multiple)]])
-        multiple += 1
-        if a == 0:
-            generated_image = im_h
-        else:
-            generated_image = vconcat([generated_image, im_h])
-    return generated_image
 
 
 def import_model():
@@ -91,7 +76,6 @@ def apply_gan(
     assert type(width) == int
     assert type(height) == int
     grid2d = []
-    thresher = np.zeros((num_samples, 256, 256))
     genner = np.zeros((num_samples, 256, 256, 3))
     threshgenner = np.zeros((len(im1_preprocess_blocks), 256, 256))
     for sample in tqdm(range(num_samples)):
@@ -116,21 +100,16 @@ def apply_gan(
         else:
             threshgen = np.full((thresh_tissue.shape), 255)
             grid2d.append("o")
-        thresh_tissue = np.expand_dims(thresh_tissue, axis=0)
         genner[sample] = gen_image
-        thresher[sample] = thresh_tissue
         threshgenner[sample] = threshgen
 
     zipped_genner = zip_up_image(height, width, genner)
     zipped_threshgenner = zip_up_image(height, width, threshgenner)
-    legacy_threshold = zip_up_image(height, width, thresher)
 
     generated_image = 255 * zipped_genner
     generated_image = generated_image.astype(np.uint8)
     generated_image = cvtColor(generated_image, COLOR_BGR2RGB)
     generated_thresholded = zipped_threshgenner.astype(np.uint8)
-    legacy_threshold = legacy_threshold.astype(np.uint8)
-    st.image(legacy_threshold)
     st.image(generated_thresholded)
     st.image(generated_image)
     assert type(grid2d) == list
@@ -142,7 +121,7 @@ def apply_gan(
 def clean_images(
     width: int, height: int, grid2d: list, threshgenner: np.ndarray, thresh_tissue: np.ndarray
 ) -> np.ndarray:
-    """Clean the thresholded images"""
+    """Clean the thresholded (fibrosis vs nonfibrosis) images"""
     assert type(width) == int
     assert type(height) == int
     assert type(grid2d) == list
@@ -227,7 +206,7 @@ def clean_images(
     clean_thresholded_fibrosis_nonfibrosis = clean_thresholded_fibrosis_nonfibrosis.astype(np.uint8)
     st.image(clean_thresholded_fibrosis_nonfibrosis)
     assert type(clean_thresholded_fibrosis_nonfibrosis) == np.ndarray
-    return clean_thresholded_fibrosis_nonfibrosis
+    return clean_thresholded_fibrosis_nonfibrosis, remove
 
 
 def report_fibrosis(patchwise_thresholded_tissue_nontissue, radio, clean_thresholded_fibrosis_nonfibrosis):

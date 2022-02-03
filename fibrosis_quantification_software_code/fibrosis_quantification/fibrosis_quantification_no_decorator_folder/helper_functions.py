@@ -3,6 +3,8 @@ import typing
 
 import cv2
 import numpy as np
+from cv2 import hconcat, vconcat
+from tqdm import tqdm
 
 
 def constrain_type(patch: np.ndarray) -> np.ndarray:
@@ -112,3 +114,19 @@ def threshold_gen(gen_image: np.ndarray) -> typing.Tuple[int, np.ndarray]:
     assert type(black_fib) == int
     assert type(threshgen) == np.ndarray
     return black_fib, threshgen
+
+
+def zip_up_image(height, width, array_of_patches):
+    multiple = 0
+    for a in tqdm(range(height)):
+        for k in range(width):
+            if k == 0:
+                im_h = array_of_patches[k + (width * multiple)]
+            else:
+                im_h = hconcat([im_h, array_of_patches[k + (width * multiple)]])
+        multiple += 1
+        if a == 0:
+            generated_image = im_h
+        else:
+            generated_image = vconcat([generated_image, im_h])
+    return generated_image
