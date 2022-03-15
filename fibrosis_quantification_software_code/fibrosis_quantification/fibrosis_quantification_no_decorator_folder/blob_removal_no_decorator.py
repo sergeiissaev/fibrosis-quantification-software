@@ -12,10 +12,18 @@ from fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quan
 )
 
 
+def callback_colors(image):
+    image = image.flatten().tolist()
+    print(f"White: {image.count(255)}")
+    print(f"Black: {image.count(0)}")
+
+
 def blob_removal(radio: str, patchwise_thresholded_tissue_nontissue, remove, samples, height, width) -> np.ndarray:
     """Call the model to translate the input"""
     assert type(radio) == str
+    callback_colors(patchwise_thresholded_tissue_nontissue)
     if radio == "WSI":
+        print("detected WSI")
         thresh_blocks = view_as_blocks(patchwise_thresholded_tissue_nontissue, block_shape=(256, 256)).squeeze()
         thresh_blocks = thresh_blocks.reshape(-1, 256, 256)
         thresh_beauty = np.zeros((samples, 256, 256))
@@ -177,8 +185,9 @@ def blob_removal(radio: str, patchwise_thresholded_tissue_nontissue, remove, sam
                     thresh_beauty_im[x : x + 64, y : y + 64] = np.full((64, 64), 0)
 
         thresh_beauty_im = thresh_beauty_im.astype(np.uint8)
-
-        st.write("Thresh beauty im")
+        st.markdown("<h5 style='text-align: center;'>Final Tissue Detection Image</h1>", unsafe_allow_html=True)
         st.image(thresh_beauty_im)
 
-    return thresh_beauty_im
+        return thresh_beauty_im
+    else:
+        return patchwise_thresholded_tissue_nontissue

@@ -43,8 +43,8 @@ def preliminary_preprocessing(source_file: streamlit.uploaded_file_manager.Uploa
     img_array = constrain_type(img_array)
     assert type(img_array) == np.ndarray
     patchwise_thresholded_tissue_nontissue = patchwise_threshold(img_array)
-    if radio == "WSI":
-        st.image(patchwise_thresholded_tissue_nontissue)
+    # if radio == "WSI":
+    #     st.image(patchwise_thresholded_tissue_nontissue)
     img_preprocess_blocks_255 = view_as_blocks(img_array, block_shape=(256, 256, 3)).squeeze()
     img_preprocess_blocks_255 = img_preprocess_blocks_255.reshape(-1, 256, 256, 3)
     # scale from [0,255] to [-1,1]
@@ -104,14 +104,14 @@ def apply_gan(
         threshgenner[sample] = threshgen
 
     zipped_genner = zip_up_image(height, width, genner)
-    zipped_threshgenner = zip_up_image(height, width, threshgenner)
 
     generated_image = 255 * zipped_genner
     generated_image = generated_image.astype(np.uint8)
     generated_image = cvtColor(generated_image, COLOR_BGR2RGB)
-    generated_thresholded = zipped_threshgenner.astype(np.uint8)
-    st.image(generated_thresholded)
+    st.markdown("<h5 style='text-align: center;'>AI generated translation</h1>", unsafe_allow_html=True)
     st.image(generated_image)
+
+    # st.image(generated_thresholded)
     assert type(grid2d) == list
     assert type(threshgenner) == np.ndarray
     assert type(thresh_tissue) == np.ndarray
@@ -204,6 +204,7 @@ def clean_images(
 
     clean_thresholded_fibrosis_nonfibrosis = zip_up_image(height, width, threshgenner)
     clean_thresholded_fibrosis_nonfibrosis = clean_thresholded_fibrosis_nonfibrosis.astype(np.uint8)
+    st.markdown("<h5 style='text-align: center;'>Fibrotic vs nonfibrotic pixels</h1>", unsafe_allow_html=True)
     st.image(clean_thresholded_fibrosis_nonfibrosis)
     assert type(clean_thresholded_fibrosis_nonfibrosis) == np.ndarray
     return clean_thresholded_fibrosis_nonfibrosis, remove
@@ -237,6 +238,10 @@ def report_fibrosis(patchwise_thresholded_tissue_nontissue, radio, clean_thresho
     st.write(
         f"The percentage of tissue in this image is {tissue_final}% and the percentage of fibrosis in this image is {fibrosis_final}%."
     )
+
+    print(f"tissue white {tissue_white}")
+    print(f"background black {total_pixels_tissue_nontissue}")
+    print(f"fascia black {fibrotic_pixels}")
     assert type(tissue_final) == float
     assert type(fibrosis_final) == float
     return tissue_final, fibrosis_final
