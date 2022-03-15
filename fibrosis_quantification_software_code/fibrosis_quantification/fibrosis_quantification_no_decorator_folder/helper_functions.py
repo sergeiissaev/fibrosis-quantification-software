@@ -3,12 +3,27 @@ import typing
 
 import cv2
 import numpy as np
+from cv2 import hconcat, vconcat
+from tqdm import tqdm
+
+
+def callback_colors(image):
+    image = image.flatten().tolist()
+    print(f"White: {image.count(255)}")
+    print(f"Black: {image.count(0)}")
 
 
 def constrain_type(patch: np.ndarray) -> np.ndarray:
     assert type(patch) == np.ndarray
     patch = np.clip(patch, 0, 255)
     patch = patch.astype(np.uint8)
+    return patch
+
+
+def constrain_type_backwards(patch: np.ndarray) -> np.ndarray:
+    assert type(patch) == np.ndarray
+    patch = patch.astype(np.uint8)
+    patch = np.clip(patch, 0, 255)
     return patch
 
 
@@ -70,20 +85,21 @@ def threshold_fx(patch: np.ndarray) -> typing.Tuple[int, int, np.ndarray]:
 def patchwise_threshold(patch: np.ndarray):
     """Obtain the image-wise threshold for an input WSI"""
     assert type(patch) == np.ndarray
+    callback_colors(patch)
     # Set the global mean of the patch to 100
     patch = set_global_mean(patch, 100)
-    patch = constrain_type(patch)
+    patch = constrain_type_backwards(patch)
     patch = cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY)
     patch = ~patch
     patch = 2 * patch
-    patch = constrain_type(patch)
+    patch = constrain_type_backwards(patch)
     patch = set_global_mean(patch, 100)
-    patch = constrain_type(patch)
+    patch = constrain_type_backwards(patch)
     patch = cv2.medianBlur(patch, 15)
     kernel = np.ones((5, 5), np.uint8)
     patch = cv2.morphologyEx(patch, cv2.MORPH_OPEN, kernel)
     patch = set_global_mean(patch, 100)
-    patch = constrain_type(patch)
+    patch = constrain_type_backwards(patch)
     ranger = abs(int(patch.min()) - int(patch.max()))
     thresh_calc = patch.min() + (0.20 * ranger)
     if patch.min() < 50:
@@ -91,6 +107,8 @@ def patchwise_threshold(patch: np.ndarray):
     if patch.min() < 30:
         thresh_calc = patch.min() + (0.50 * ranger)
     _, thresh1 = cv2.threshold(patch, thresh_calc, 255, cv2.THRESH_BINARY)
+
+    callback_colors(thresh1)
     return thresh1
 
 
@@ -112,3 +130,19 @@ def threshold_gen(gen_image: np.ndarray) -> typing.Tuple[int, np.ndarray]:
     assert type(black_fib) == int
     assert type(threshgen) == np.ndarray
     return black_fib, threshgen
+
+
+def zip_up_image(height, width, array_of_patches):
+    multiple = 0
+    for a in tqdm(range(height)):
+        for k in range(width):
+            if k == 0:
+                im_h = array_of_patches[k + (width * multiple)]
+            else:
+                im_h = hconcat([im_h, array_of_patches[k + (width * multiple)]])
+        multiple += 1
+        if a == 0:
+            generated_image = im_h
+        else:
+            generated_image = vconcat([generated_image, im_h])
+    return generated_image
