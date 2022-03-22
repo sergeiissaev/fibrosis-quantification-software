@@ -10,4 +10,6 @@
 
 `scripts\push_dockerhub.bat`
 
-[flow.pdf](https://github.com/sergeiissaev/fibrosis-quantification-software/files/8327785/flow.pdf)
+
+## Flow visualization![flow-1](https://user-images.githubusercontent.com/53531737/159573531-b5b4af3c-f24f-47f6-8c0d-aa7bc27c5aae.png)
+
