@@ -3,6 +3,7 @@ from prefect import Flow
 
 import fibrosis_quantification_software_code.fibrosis_quantification.blob_removal as blob_removal
 import fibrosis_quantification_software_code.fibrosis_quantification.fibrosis_quantification as fibrosis_quantification
+import fibrosis_quantification_software_code.fibrosis_quantification.save_files as save_files
 
 
 def create_flow(patch_or_wsi: str, uploaded_file):
@@ -28,9 +29,11 @@ def create_flow(patch_or_wsi: str, uploaded_file):
         tissue_final, fibrosis_final = fibrosis_quantification.report_fibrosis(
             patchwise_thresholded_tissue_nontissue, patch_or_wsi, clean_thresholded_fibrosis_nonfibrosis
         )
-    return flow
+        save_files.create_zip(patchwise_thresholded_tissue_nontissue)
+
+    return flow, patchwise_thresholded_tissue_nontissue
 
 
 if __name__ == "__main__":
-    flow = create_flow(patch_or_wsi="patch", uploaded_file=0)
+    flow, patchwise_thresholded_tissue_nontissue = create_flow(patch_or_wsi="patch", uploaded_file=0)
     flow.visualize()

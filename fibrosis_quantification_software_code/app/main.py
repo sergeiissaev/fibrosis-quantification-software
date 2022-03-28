@@ -2,6 +2,8 @@
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+
 import streamlit as st
 from art import tprint
 
@@ -25,7 +27,7 @@ def main():
         if clicked:
             st.markdown("<h5 style='text-align: center;'>Original image</h1>", unsafe_allow_html=True)
             st.image(uploaded_file)
-            flow = create_flow(radio=radio, uploaded_file=uploaded_file)
+            flow, patchwise_thresholded_tissue_nontissue = create_flow(patch_or_wsi=radio, uploaded_file=uploaded_file)
             state_1 = flow.run()
             if state_1.message == "All reference tasks succeeded.":
                 tprint("Success")
