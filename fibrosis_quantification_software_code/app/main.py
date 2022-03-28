@@ -20,9 +20,7 @@ def main():
     uploaded_file = st.file_uploader("Upload your histology image (PSR stained, 10x microscopy)", type=["png", "jpg"])
 
     if uploaded_file is not None:
-        file_details = {"FileName": uploaded_file.name, "FileType": uploaded_file.type, "FileSize": uploaded_file.size}
         radio = st.radio("Patch or whole slide image?", ["WSI", "Patch"])
-        print(file_details, radio)
         clicked = st.button("Calculate")
         if clicked:
             st.markdown("<h5 style='text-align: center;'>Original image</h1>", unsafe_allow_html=True)
