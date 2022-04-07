@@ -67,7 +67,7 @@ def apply_gan(
     img_preprocess_blocks_255: np.ndarray,
     width: int,
     height: int,
-) -> typing.Tuple[list, np.ndarray, np.ndarray]:
+) -> typing.Tuple[list, np.ndarray, np.ndarray, np.ndarray]:
     """Call the model to translate the input"""
     assert type(num_samples) == int
     assert type(model) == keras.engine.functional.Functional
@@ -115,7 +115,7 @@ def apply_gan(
     assert type(grid2d) == list
     assert type(threshgenner) == np.ndarray
     assert type(thresh_tissue) == np.ndarray
-    return grid2d, threshgenner, thresh_tissue
+    return grid2d, threshgenner, thresh_tissue, generated_image
 
 
 def clean_images(

@@ -32,9 +32,9 @@ def preliminary_preprocessing(source_file, radio):
     )
 
 
-@task(name="Applying GAN", max_retries=3, retry_delay=timedelta(seconds=10), nout=3)
+@task(name="Applying GAN", max_retries=3, retry_delay=timedelta(seconds=10), nout=4)
 def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height):
-    grid2d, threshgenner, thresh_tissue = fibrosis_quantification_no_decorator.apply_gan(
+    grid2d, threshgenner, thresh_tissue, generated_image = fibrosis_quantification_no_decorator.apply_gan(
         num_samples,
         model,
         im1_preprocess_blocks,
@@ -42,7 +42,7 @@ def apply_gan(num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_2
         width,
         height,
     )
-    return grid2d, threshgenner, thresh_tissue
+    return grid2d, threshgenner, thresh_tissue, generated_image
 
 
 @task(name="Cleaning generated images", max_retries=3, retry_delay=timedelta(seconds=10), nout=2)

@@ -18,7 +18,7 @@ def create_flow(patch_or_wsi: str, uploaded_file: st.uploaded_file_manager.Uploa
             height,
             patchwise_thresholded_tissue_nontissue,
         ) = fibrosis_quantification.preliminary_preprocessing(uploaded_file, patch_or_wsi)
-        grid2d, threshgenner, thresh_tissue = fibrosis_quantification.apply_gan(
+        grid2d, threshgenner, thresh_tissue, generated_image = fibrosis_quantification.apply_gan(
             num_samples, model, im1_preprocess_blocks, img_preprocess_blocks_255, width, height
         )
         clean_thresholded_fibrosis_nonfibrosis, remove = fibrosis_quantification.clean_images(
@@ -31,7 +31,12 @@ def create_flow(patch_or_wsi: str, uploaded_file: st.uploaded_file_manager.Uploa
             patchwise_thresholded_tissue_nontissue, patch_or_wsi, clean_thresholded_fibrosis_nonfibrosis
         )
         save_files.create_zip(
-            patchwise_thresholded_tissue_nontissue=patchwise_thresholded_tissue_nontissue, uploaded_file=uploaded_file
+            patchwise_thresholded_tissue_nontissue=patchwise_thresholded_tissue_nontissue,
+            uploaded_file=uploaded_file,
+            generated_image=generated_image,
+            clean_thresholded_fibrosis_nonfibrosis=clean_thresholded_fibrosis_nonfibrosis,
+            tissue_final=tissue_final,
+            fibrosis_final=fibrosis_final,
         )
 
     return flow, patchwise_thresholded_tissue_nontissue
