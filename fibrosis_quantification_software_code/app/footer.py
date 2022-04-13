@@ -56,6 +56,9 @@ def footer():
         "Made with ❤️ by ",
         link("https://www.linkedin.com/in/sergei-issaev/", "Sergei Issaev"),
         br(),
-        "Contact: sergei740@gmail.com",
+        "Github: ",
+        link("https://github.com/sergeiissaev/fibrosis-quantification-software", "fibrosis-quantification-software"),
+        br(),
+        "Contact: sergei740@gmail.com ",
     ]
     layout(*myargs)
